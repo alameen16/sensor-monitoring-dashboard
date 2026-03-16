@@ -212,9 +212,9 @@ export default function IoTDashboard() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "monospace", marginBottom: 4 }}>
-            SBSC · Industrial IoT Platform
+            Industrial IoT Platform
           </div>
-          <h1 style={{ margin: 0, fontSize: titleSize, fontWeight: 700, letterSpacing: -0.5 }}>
+          <h1 style={{ margin: 0, fontSize: titleSize, color: "#10b981",ffontWeight: 700, letterSpacing: -0.5 }}>
             Sensor Monitoring Dashboard
           </h1>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
@@ -312,7 +312,7 @@ export default function IoTDashboard() {
       </div>
 
       <div style={{ marginTop: 16, color: "rgba(255,255,255,0.15)", fontSize: 10, fontFamily: "monospace", textAlign: "center" }}>
-        Akintola Al-Ameen · Bells University of Technology · EEE Internship Project 1
+        Akintola Al-Ameen 
       </div>
     </div>
   );
