@@ -3,8 +3,6 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 
 const NUM_POINTS = 20;
 
-// Normal readings stay well below warning thresholds at all times
-// Alerts are handled by a separate dedicated scheduler — not random spikes
 function generateReading(base, variance) {
   return parseFloat((base + (Math.random() - 0.5) * variance * 2).toFixed(2));
 }
@@ -26,28 +24,16 @@ const SENSORS = [
   { key: "power",   label: "Power",       unit: "W",  base: 985, variance: 60,  warn: 1100, crit: 1200, color: "#a855f7" },
 ];
 
-// ─── Scripted alert schedule ─────────────────────────────────────────────────
-// Alerts follow a logarithmic series — gaps get progressively longer,
-// mimicking how a real industrial system behaves: a few early events as the
-// system warms up, then increasingly rare events during stable operation.
-//
-//  Alert 1 →  1 min  (system warming up)
-//  Alert 2 →  6 min
-//  Alert 3 → 20 min
-//  Alert 4 →  1 hr
-//  Alert 5 →  2 hr
-//  Alert 6 →  4 hr
-//  Alert 7 →  8 hr
-//
-// at = seconds after app loads when the alert fires
+// Scripted alert schedule — logarithmic series
+// 1min → 6min → 20min → 1hr → 2hr → 4hr → 8hr
 const SCRIPTED_ALERTS = [
-  { at: 60,    sensor: "temp",    value: 88.4,  status: "WARNING"  },  // 1 min
-  { at: 360,   sensor: "current", value: 6.3,   status: "WARNING"  },  // 6 min
-  { at: 1200,  sensor: "temp",    value: 96.1,  status: "CRITICAL" },  // 20 min
-  { at: 3600,  sensor: "voltage", value: 243.7, status: "WARNING"  },  // 1 hr
-  { at: 7200,  sensor: "power",   value: 1187,  status: "WARNING"  },  // 2 hr
-  { at: 14400, sensor: "current", value: 7.2,   status: "CRITICAL" },  // 4 hr
-  { at: 28800, sensor: "temp",    value: 97.8,  status: "CRITICAL" },  // 8 hr
+  { at: 60,    sensor: "temp",    value: 88.4,  status: "WARNING"  },
+  { at: 360,   sensor: "current", value: 6.3,   status: "WARNING"  },
+  { at: 1200,  sensor: "temp",    value: 96.1,  status: "CRITICAL" },
+  { at: 3600,  sensor: "voltage", value: 243.7, status: "WARNING"  },
+  { at: 7200,  sensor: "power",   value: 1187,  status: "WARNING"  },
+  { at: 14400, sensor: "current", value: 7.2,   status: "CRITICAL" },
+  { at: 28800, sensor: "temp",    value: 97.8,  status: "CRITICAL" },
 ];
 
 function getStatus(value, sensor) {
@@ -81,7 +67,7 @@ function SensorCard({ sensor, data, active, onClick }) {
         background:   active ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)",
         border:       `1px solid ${active ? glowColor : "rgba(255,255,255,0.08)"}`,
         borderRadius: 16,
-        padding:      "20px 22px",
+        padding:      "16px 18px",
         cursor:       "pointer",
         transition:   "all 0.2s",
         boxShadow:    active ? `0 0 24px ${glowColor}22` : "none",
@@ -89,20 +75,20 @@ function SensorCard({ sensor, data, active, onClick }) {
         overflow:     "hidden",
       }}
     >
-      <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, borderRadius: "0 16px 0 80px", background: `${sensor.color}08` }} />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'DM Mono', monospace" }}>
+      <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, borderRadius: "0 16px 0 60px", background: `${sensor.color}08` }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 600, letterSpacing: 1.2, textTransform: "uppercase", fontFamily: "monospace" }}>
           {sensor.label}
         </span>
         <StatusBadge status={status} />
       </div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 14 }}>
-        <span style={{ fontSize: 36, fontWeight: 700, color: glowColor, fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 5, marginBottom: 10 }}>
+        <span style={{ fontSize: 30, fontWeight: 700, color: glowColor, fontFamily: "monospace", lineHeight: 1 }}>
           {latest}
         </span>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>{sensor.unit}</span>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>{sensor.unit}</span>
       </div>
-      <ResponsiveContainer width="100%" height={50}>
+      <ResponsiveContainer width="100%" height={44}>
         <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id={`grad-${sensor.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -119,8 +105,8 @@ function SensorCard({ sensor, data, active, onClick }) {
 
 function AlertLog({ alerts }) {
   return (
-    <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "18px 20px", height: "100%", overflowY: "auto" }}>
-      <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 14, fontFamily: "'DM Mono', monospace" }}>
+    <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px 18px", overflowY: "auto", maxHeight: 340 }}>
+      <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12, fontFamily: "monospace" }}>
         Alert Log
       </div>
       {alerts.length === 0 && (
@@ -139,6 +125,20 @@ function AlertLog({ alerts }) {
   );
 }
 
+// ── Responsive hook — detects screen width ───────────────────────────────────
+function useBreakpoint() {
+  const [width, setWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  // phone < 600, tablet 600–900, desktop > 900
+  return { isPhone: width < 600, isTablet: width >= 600 && width < 900, isDesktop: width >= 900, width };
+}
+
 export default function IoTDashboard() {
   const [data, setData]       = useState(initData);
   const [active, setActive]   = useState("temp");
@@ -149,7 +149,18 @@ export default function IoTDashboard() {
   const startTime = useRef(Date.now());
   const firedRef  = useRef(new Set());
 
-  // ── Sensor update loop — pure display, no alert logic ──────────────────────
+  const { isPhone, isTablet, isDesktop } = useBreakpoint();
+
+  // Responsive grid columns:
+  // Desktop  → sensor cards: 4 cols | chart + log: side by side
+  // Tablet   → sensor cards: 2 cols | chart + log: stacked
+  // Phone    → sensor cards: 1 col  | chart + log: stacked
+  const cardCols   = isDesktop ? "repeat(4, 1fr)" : isTablet ? "repeat(2, 1fr)" : "1fr";
+  const bottomCols = isDesktop ? "1fr 300px" : "1fr";
+  const padding    = isPhone ? "16px" : "24px 28px";
+  const titleSize  = isPhone ? 20 : 26;
+
+  // ── Sensor update loop ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!running) return;
     const interval = setInterval(() => {
@@ -163,9 +174,6 @@ export default function IoTDashboard() {
   }, [running]);
 
   // ── Alert scheduler ─────────────────────────────────────────────────────────
-  // Checks every 5 seconds whether a scripted alert is due.
-  // firedRef ensures each alert fires exactly once even if the checker
-  // runs multiple times after the due time has passed.
   useEffect(() => {
     if (!running) return;
     const checker = setInterval(() => {
@@ -196,34 +204,36 @@ export default function IoTDashboard() {
       background: "#080c14",
       color:      "#fff",
       fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
-      padding:    "28px 32px",
+      padding,
+      boxSizing:  "border-box",
     }}>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "monospace", marginBottom: 4 }}>
-            Industrial IoT Platform
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: 3, textTransform: "uppercase", fontFamily: "monospace", marginBottom: 4 }}>
+            SBSC · Industrial IoT Platform
           </div>
-          <h1 style={{ margin: 0, fontSize: 26,color: "#10b981", fontWeight: 700, letterSpacing: -0.5 }}>
+          <h1 style={{ margin: 0, fontSize: titleSize, fontWeight: 700, letterSpacing: -0.5 }}>
             Sensor Monitoring Dashboard
           </h1>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>
             Node: <span style={{ color: "#10b981", fontFamily: "monospace" }}>GRID-UNIT-04</span> · Live telemetry
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: running ? "#10b981" : "#ef4444", boxShadow: running ? "0 0 8px #10b981" : "none" }} />
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>{running ? "LIVE" : "PAUSED"}</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>{running ? "LIVE" : "PAUSED"}</span>
           </div>
           <button
             onClick={() => setRunning(r => !r)}
             style={{
-              background: running ? "rgba(239,68,68,0.15)" : "rgba(16,185,129,0.15)",
-              border:     `1px solid ${running ? "rgba(239,68,68,0.4)" : "rgba(16,185,129,0.4)"}`,
-              color:      running ? "#ef4444" : "#10b981",
-              borderRadius: 8, padding: "7px 18px", cursor: "pointer", fontSize: 12, fontWeight: 600, letterSpacing: 0.5,
+              background:   running ? "rgba(239,68,68,0.15)" : "rgba(16,185,129,0.15)",
+              border:       `1px solid ${running ? "rgba(239,68,68,0.4)" : "rgba(16,185,129,0.4)"}`,
+              color:        running ? "#ef4444" : "#10b981",
+              borderRadius: 8, padding: "6px 16px", cursor: "pointer",
+              fontSize: 11, fontWeight: 600, letterSpacing: 0.5,
             }}
           >
             {running ? "Pause" : "Resume"}
@@ -231,17 +241,19 @@ export default function IoTDashboard() {
         </div>
       </div>
 
-      {/* Sensor Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 24 }}>
+      {/* Sensor Cards — responsive grid */}
+      <div style={{ display: "grid", gridTemplateColumns: cardCols, gap: 12, marginBottom: 16 }}>
         {SENSORS.map(s => (
           <SensorCard key={s.key} sensor={s} data={data} active={active === s.key} onClick={() => setActive(s.key)} />
         ))}
       </div>
 
-      {/* Main Chart + Alert Log */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 16 }}>
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 22px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+      {/* Main Chart + Alert Log — responsive layout */}
+      <div style={{ display: "grid", gridTemplateColumns: bottomCols, gap: 12 }}>
+
+        {/* Chart panel */}
+        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px 18px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
             <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: "monospace" }}>
               {activeSensor?.label} · Time Series
             </span>
@@ -260,13 +272,20 @@ export default function IoTDashboard() {
               ))}
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={isPhone ? 160 : 220}>
             <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="t" tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 10, fontFamily: "monospace" }} />
-              <YAxis tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 10, fontFamily: "monospace" }} />
+              <XAxis
+                dataKey="t"
+                tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9, fontFamily: "monospace" }}
+                angle={-40}
+                textAnchor="end"
+                height={40}
+                interval={isPhone ? 4 : isTablet ? 3 : 2}
+              />
+              <YAxis tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9, fontFamily: "monospace" }} />
               <Tooltip
-                contentStyle={{ background: "#0f1623", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
+                contentStyle={{ background: "#0f1623", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 11 }}
                 labelStyle={{ color: "rgba(255,255,255,0.5)" }}
                 itemStyle={{ color: activeSensor?.color }}
               />
@@ -276,20 +295,24 @@ export default function IoTDashboard() {
               )}
             </LineChart>
           </ResponsiveContainer>
-          <div style={{ display: "flex", gap: 20, marginTop: 12 }}>
+
+          {/* Live readout strip — wraps on small screens */}
+          <div style={{ display: "flex", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
             {SENSORS.map(s => (
-              <div key={s.key} style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, letterSpacing: 1, textTransform: "uppercase", fontFamily: "monospace" }}>{s.label}</span>
-                <span style={{ color: s.color, fontSize: 14, fontWeight: 700, fontFamily: "monospace" }}>{latest?.[s.key]}{s.unit}</span>
+              <div key={s.key} style={{ display: "flex", flexDirection: "column", minWidth: 60 }}>
+                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9, letterSpacing: 1, textTransform: "uppercase", fontFamily: "monospace" }}>{s.label}</span>
+                <span style={{ color: s.color, fontSize: 13, fontWeight: 700, fontFamily: "monospace" }}>{latest?.[s.key]}{s.unit}</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Alert log — always shows, stacks below chart on phone/tablet */}
         <AlertLog alerts={alerts} />
       </div>
 
-      <div style={{ marginTop: 20, color: "rgba(255,255,255,0.2)", fontSize: 11, fontFamily: "monospace", textAlign: "center" }}>
-        Akintola Al-Ameen ·
+      <div style={{ marginTop: 16, color: "rgba(255,255,255,0.15)", fontSize: 10, fontFamily: "monospace", textAlign: "center" }}>
+        Akintola Al-Ameen · Bells University of Technology · EEE Internship Project 1
       </div>
     </div>
   );
